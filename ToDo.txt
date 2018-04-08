@@ -1,5 +1,4 @@
 
-
 To Do list
   - Be able to compile program on GPU - can practice w/ hello world
   - Understand how switch from main memory into cache - (figure out how to do this)
