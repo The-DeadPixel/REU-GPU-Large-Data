@@ -6,8 +6,7 @@ GPU Architecture
 CUDA Appliction structure: 
   - serial code executes in a host(CPU) while Parallel code executes in GPU threads. 
   
-  ![Slide](Images/gpu.png "from ttps://www.cs.colostate.edu/~cs475/f16/Lectures/IntroductionandCuda_final.pdf")
-  
+![Slide|512x397|10%](Images/gpu.png)[10%]
   
   
   
