@@ -1,0 +1,10 @@
+Refer to www.cs.colostate.edu/~info/cuda-faq.html and set the environment variables with the provided script.
+  - Use config.titan.ccs.ornl.gov.02 as the configuration file.
+  - Set ERT_LD to g++ and ERT_LDFLAGS to -L/usr/local/cuda/lib64 -lcudart
+  - Set ERT_RUN to ERT_CODE (remove aprun)
+
+You should end up with a valid config. Running the experiments should take ~20 minutes.
+
+Meanwhile, don't forget to compute the theoretical peak GFlops/s and the GBytes/s to compare your results against. A quick reminder of the formulae:
+  - GFlops/s : ((floating-point) instructions per cycle) * (cycles per second) * #(cores per socket) * #sockets
+  - GBytes/s : (Bytes per transfer) * (transfers / second) * #(occupied sockets)
