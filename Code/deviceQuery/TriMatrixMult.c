@@ -9,20 +9,21 @@
 
 #define N 3  // THIS IS WHERE YOU DEFINE THE SIZE OF THE MATRIX (it can only be square right now)
 
+//
 // Function to form upper triangular marix
 void upper(int matrix[][N])
 {
     int i, j;
     
-    for (i=0; i<N; i++)
+    for (i=0; i<N; i++)                     // for every row
     {
-        for (j=0; j<N; j++)
+        for (j=0; j<N; j++)                 // for col 
         {
-            if (i>j)
+            if (i>j)                        // if row# > col# aka if you are in bottom left half of triangle  
             {
-                matrix[i][j] = 0;
+                matrix[i][j] = 0;           // place a 0
             }
-            matrix[i][j] = matrix[i][j];
+           // matrix[i][j] = matrix[i][j];    // dont need this 
         }
     }
 }
@@ -32,12 +33,12 @@ void upper(int matrix[][N])
 void multiply(int mat1[][N], int mat2[][N], int res[][N])
 {
     int i, j, k;
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N; i++)         // for every row
     {
-        for (j = i; j < N; j++)
+        for (j = i; j < N; j++)     // for every col
         {
-            res[i][j] = 0;
-            for (k = 0; k < N; k++)
+            // Multiply the row of mat1 by the column of mat2 to get the row, column of product. 
+            for (k = 0; k < N; k++) 
                 res[i][j] += mat1[i][k]*mat2[k][j];
         }
     }
@@ -47,7 +48,7 @@ int main(int argc, char** argv)
 {
     int mat1[N][N] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     int mat2[N][N] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    int res[N][N];
+    int res[N][N] = {0};
     
     upper(mat1); // sets the matrix to its upper bound
     upper(mat2); // sets the matrix to its upper bound
@@ -59,24 +60,21 @@ int main(int argc, char** argv)
     printf("mat1 matrix is \n");
     for (i = 0; i < N; i++)
     {
-        for (j = 0; j < N; j++)
-           printf("%d ", mat1[i][j]);
+        for (j = 0; j < N; j++)     printf("%d ", mat1[i][j]);
         printf("\n");
     }
     // print matrix 2
     printf("mat2 matrix is \n");
     for (i = 0; i < N; i++)
     {
-        for (j = 0; j < N; j++)
-           printf("%d ", mat2[i][j]);
+        for (j = 0; j < N; j++)     printf("%d ", mat2[i][j]);
         printf("\n");
     }
     // print result matrix
     printf("Result matrix is \n");
     for (i = 0; i < N; i++)
     {
-        for (j = 0; j < N; j++)
-           printf("%d ", res[i][j]);
+        for (j = 0; j < N; j++)     printf("%d ", res[i][j]);
         printf("\n");
     }
     
