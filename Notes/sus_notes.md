@@ -30,10 +30,9 @@ CUDA Appliction structure:
     Initialize host data.
     Transfer data from the host to the device.
     Execute one or more kernels.
-    Transfer results from the device to the host." - [source](https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/)
-  
-  
-  
-  
-  Dissecting GPU Memory Hierarchy through Microbenchmarking: [source](https://arxiv.org/pdf/1509.02308.pdf)
+    Transfer results from the device to the host."- [source](https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/)
+ 
+ 
+- **CUDA streams** - a sequence of operations that execute on the device in the order they are issued by the host [slide 8](http://www.ce.jhu.edu/dalrymple/classes/602/Class13.pdf)
+
   
