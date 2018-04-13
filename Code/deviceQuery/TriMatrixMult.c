@@ -1,5 +1,5 @@
 // C program to multiply 2 triangular square matricies
-// gcc -Wall GPUMatrixMult.c -o GPUMaMult
+// gcc -Wall GPUMatrixMult.c -o TriMatMult
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
