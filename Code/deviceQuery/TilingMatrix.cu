@@ -186,8 +186,8 @@ int main(int argc, char** argv) {
     
     // Launch kernel, check if it is a square
     if(m == n && n == k) {
-        matrixTriUpper<<<dimGrid, dimBlock>>>(matA, m, n);
-        matrixTriUpper<<<dimGrid, dimBlock>>>(matB, n, k);
+        matrixTriUpper<<<dimGrid, dimBlock>>>(matA, m, n); // block into a upper bound triangle for matA
+        matrixTriUpper<<<dimGrid, dimBlock>>>(matB, n, k); // block into a upper bound triangle for matB
         squareMatrixMult<<<dimGrid, dimBlock>>>(matA, matB, matC, n); // square, thus only need 1 param to define size
     }
     else { // not a square, thus it needs param to define all sizes
