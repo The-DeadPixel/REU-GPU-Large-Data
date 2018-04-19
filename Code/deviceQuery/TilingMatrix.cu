@@ -26,7 +26,7 @@ Note:
     
 return: none
 **********************************************************************/
-__global__ void matrixTriUpper(int *a, int m, int n) {
+__global__ void matrixTriUpper(float *a, int m, int n) {
     // printf("[%d][%d]:%d == [%d][%d]:%d, ", i, j, copyC[i*k + j], i, j, copyC[i*k + j]); REMOVE THIS LATER
     //setting matricies to their upper bound 
     for(int i = 0; i < m; ++i) {
@@ -53,11 +53,11 @@ Note:
     further sppedup can be obtained by using shared memory to decrease global memory access times
 return: none
 **********************************************************************/
-__global__ void matrixMult(int *a,int *b, int *c, int m, int n, int k)
+__global__ void matrixMult(float *a, float *b, float *c, int m, int n, int k)
 { 
     int row = blockIdx.y * blockDim.y + threadIdx.y; 
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    int sum = 0;
+    float  sum = 0;
     if( col < k && row < m) 
     {
         for(int i = 0; i < n; i++) 
@@ -85,14 +85,14 @@ Note:
 return: none
 *********************************************************************
 */
-__global__ void squareMatrixMult(int *d_a, int *d_b, int *d_result, int n) 
+__global__ void squareMatrixMult(float *d_a, float *d_b, float *d_result, int n) 
 {
-    __shared__ int tile_a[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ int tile_b[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float tile_a[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float tile_b[BLOCK_SIZE][BLOCK_SIZE];
 
     int row = blockIdx.y * BLOCK_SIZE + threadIdx.y;
     int col = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    int tmp = 0;
+    float tmp = 0;
     int idx;
 
     for (int sub = 0; sub < gridDim.x; ++sub) 
@@ -142,42 +142,43 @@ return: none
 int main(int argc, char** argv) {
     int printAllMat = 1; // debug flag for printing all of the maticies
     // Set sizes of the matrixes
-    int m=10;
-    int n=10;
-    int k=10;
+    int m=3;
+    int n=3;
+    int k=3;
     
     /* Fixed seed for illustration */
     srand(3333);
 
     // Allocate memory in host RAM
-    int *copyA, *copyB, *copyC;
-    cudaMallocHost((void **) &copyA, sizeof(int)*m*n); // copied matrix is m x n
-    cudaMallocHost((void **) &copyB, sizeof(int)*n*k); // copied matrix is n x k
-    cudaMallocHost((void **) &copyC, sizeof(int)*m*k); // copied matrix is m x k
+    float *copyA, *copyB, *copyC;
+    cudaMallocHost((void **) &copyA, sizeof(float)*m*n); // copied matrix is m x n
+    cudaMallocHost((void **) &copyB, sizeof(float)*n*k); // copied matrix is n x k
+    cudaMallocHost((void **) &copyC, sizeof(float)*m*k); // copied matrix is m x k
     
+    // float x = (float)rand()/(float)(RAND_MAX/a);
     // random initialize matrix A
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
-            copyA[i * n + j] = rand() % 1024;
+            copyA[i * n + j] =((float)rand()/(float)(RAND_MAX)) * 1024;
         }
     }
 
     // random initialize matrix B
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < k; ++j) {
-            copyB[i * k + j] = rand() % 1024;
+            copyB[i * k + j] = ((float)rand()/(float)(RAND_MAX)) * 1024;
         }
     }
     
     // Allocate memory space on the device 
-    int *matA, *matB, *matC;
-    cudaMalloc((void **) &matA, sizeof(int)*m*n); // matrix is m x n
-    cudaMalloc((void **) &matB, sizeof(int)*n*k); // matrix is n x k
-    cudaMalloc((void **) &matC, sizeof(int)*m*k); // matrix is m x k
+    float *matA, *matB, *matC;
+    cudaMalloc((void **) &matA, sizeof(float)*m*n); // matrix is m x n
+    cudaMalloc((void **) &matB, sizeof(float)*n*k); // matrix is n x k
+    cudaMalloc((void **) &matC, sizeof(float)*m*k); // matrix is m x k
     
     // copy matrix A and B from host to device memory
-    cudaMemcpy(matA, copyA, sizeof(int)*m*n, cudaMemcpyHostToDevice);
-    cudaMemcpy(matB, copyB, sizeof(int)*n*k, cudaMemcpyHostToDevice);
+    cudaMemcpy(matA, copyA, sizeof(float)*m*n, cudaMemcpyHostToDevice);
+    cudaMemcpy(matB, copyB, sizeof(float)*n*k, cudaMemcpyHostToDevice);
 
     unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
     unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -186,8 +187,8 @@ int main(int argc, char** argv) {
     
     // Launch kernel, check if it is a square
     if(m == n && n == k) {
-        matrixTriUpper<<<dimGrid, dimBlock>>>(matA, m, n); // block into a upper bound triangle for matA
-        matrixTriUpper<<<dimGrid, dimBlock>>>(matB, n, k); // block into a upper bound triangle for matB
+        matrixTriUpper<<<dimGrid, dimBlock>>>(matA, m, n);
+        matrixTriUpper<<<dimGrid, dimBlock>>>(matB, n, k);
         squareMatrixMult<<<dimGrid, dimBlock>>>(matA, matB, matC, n); // square, thus only need 1 param to define size
     }
     else { // not a square, thus it needs param to define all sizes
@@ -195,20 +196,20 @@ int main(int argc, char** argv) {
     }
     
     // Transefr results from device to host 
-    cudaMemcpy(copyC, matC, sizeof(int)*m*k, cudaMemcpyDeviceToHost);
+    cudaMemcpy(copyC, matC, sizeof(float)*m*k, cudaMemcpyDeviceToHost);
     cudaThreadSynchronize();
     
     //prints the matricies
     // printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]); //Another possible way to print the matrix
-    int i,j;
     //if the debug flag is on it will print the first two product arrays as well
+    int i,j;
     if(printAllMat == 1) {
         // print matrix A
         printf("matA matrix: \n");
         for (i = 0; i < m; i++) {
             for (j = 0; j < n; j++) {
                 //printf("[%d][%d]:%d, ", i, j, copyA[i*k + j]);
-                printf("%d ", copyA[i*k + j]);
+                printf(" %f ", copyA[i*k + j]);
             }
             printf("\n");
         }
@@ -217,7 +218,7 @@ int main(int argc, char** argv) {
         for (i = 0; i < n; i++) {
             for (j = 0; j < k; j++) {
                 //printf("[%d][%d]:%d, ", i, j, copyB[i*k + j]);
-                printf("%d ", copyB[i*k + j]);
+                printf(" %f ", copyB[i*k + j]);
             }
             printf("\n");
         }
@@ -228,7 +229,7 @@ int main(int argc, char** argv) {
     for (i = 0; i < m; i++) {
         for (j = 0; j < k; j++) {
                 //printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]);
-                printf("%d ", copyC[i*k + j]);
+                printf(" %f ", copyC[i*k + j]);
             }
         printf("\n");
     }
