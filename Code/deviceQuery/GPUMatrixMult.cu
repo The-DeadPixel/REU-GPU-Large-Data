@@ -7,9 +7,9 @@
 
 #include <sys/time.h>     //measuring performance data
 
-_global__
-void kernel_syr2k(int N, int M, double *C, double *A, double *B){
-}
+//_global__
+//void kernel_syr2k(int N, int M, double *C, double *A, double *B){
+//}
 
 void matrix_math(int N){
    
