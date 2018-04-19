@@ -3,6 +3,9 @@
  *  NOTE: 
  *       squareMatrixMult is much more efficent than the regular multiplier
  *       currently compiling with: nvcc TilingMatrix.cu -o tileTest
+ *       Device Standards for: GeForce GTX 1060 6GB
+ *          total global mem size: 6078 MBytes (6373572608 bytes)
+ *          total shared mem per block: 49.152 KBytes (49152 bytes)
  */
 
 #include <stdio.h>
