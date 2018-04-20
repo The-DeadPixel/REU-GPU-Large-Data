@@ -18,7 +18,7 @@
 
 #include <sys/time.h>     //measuring performance data
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 32
 
 /**********************************************************************
 function name: matrixTriUpper
@@ -30,7 +30,6 @@ Note:
 return: none
 **********************************************************************/
 __global__ void matrixTriUpper(float *a, int m, int n) {
-    // printf("[%d][%d]:%d == [%d][%d]:%d, ", i, j, copyC[i*k + j], i, j, copyC[i*k + j]); REMOVE THIS LATER
     //setting matricies to their upper bound 
     for(int i = 0; i < m; ++i) {
         for(int j = 0; j < n; ++j) {
@@ -61,18 +60,14 @@ __global__ void matrixMult(float *a, float *b, float *c, int m, int n, int k)
     int row = blockIdx.y * blockDim.y + threadIdx.y; 
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     float  sum = 0;
-    if( col < k && row < m) 
-    {
+    if( col < k && row < m) {
         for(int i = 0; i < n; i++) 
-        {
             sum += a[row * n + i] * b[i * k + col];
-        }
         c[row * k + col] = sum;
     }
 } 
 
-/*
-*********************************************************************
+/**********************************************************************
 function name: squareMatrixMult
 description: dot product of two matrix (not only square) in GPU
 parameters: 
@@ -86,8 +81,7 @@ Note:
         dim3 dim_block(BLOCK_SIZE, BLOCK_SIZE, 1);
     SQUARE IS MUCH MORE EFFICENT THAN REGULAR
 return: none
-*********************************************************************
-*/
+**********************************************************************/
 __global__ void squareMatrixMult(float *d_a, float *d_b, float *d_result, int n) 
 {
     __shared__ float tile_a[BLOCK_SIZE][BLOCK_SIZE];
@@ -117,7 +111,7 @@ __global__ void squareMatrixMult(float *d_a, float *d_b, float *d_result, int n)
         }
         __syncthreads();
 
-        for (int k = sub; k < BLOCK_SIZE; ++k)  {
+        for (int k = threadIdx.x/n; k < BLOCK_SIZE; ++k)  {
             tmp += tile_a[threadIdx.y][k] * tile_b[k][threadIdx.x];
         }
         __syncthreads();
@@ -138,9 +132,9 @@ return: none
 int main(int argc, char** argv) {
     int printAllMat = 1; // debug flag for printing all of the maticies
     // Set sizes of the matrixes
-    int m=3;
-    int n=3;
-    int k=3;
+    int m=15;
+    int n=15;
+    int k=15;
     
     /* Fixed seed for illustration */
     srand(3333);
@@ -175,12 +169,19 @@ int main(int argc, char** argv) {
     // copy matrix A and B from host to device memory
     cudaMemcpy(matA, copyA, sizeof(float)*m*n, cudaMemcpyHostToDevice);
     cudaMemcpy(matB, copyB, sizeof(float)*n*k, cudaMemcpyHostToDevice);
+    
+    printf("size of matA %dX%d: %zu bytes\n", m,n,(sizeof(float)*m*n));
+    printf("size of matB %dX%d: %zu bytes\n", n,k,(sizeof(float)*n*k));
+    printf("size of matC %dX%d: %zu bytes\n", m,k,(sizeof(float)*m*k));
+    printf("total bytes allocated to mem: %zu bytes ", ((sizeof(float)*m*n) + (sizeof(float)*n*k)+ (sizeof(float)*m*k)));
+    printf("(~%zu MBytes)\n\n", (((sizeof(float)*m*n) + (sizeof(float)*n*k)+ (sizeof(float)*m*k)) / 1000000)); // get megabytes of the allocated arrays
 
     unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
     unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
     dim3 dimGrid(grid_cols, grid_rows);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     
+    printf("Calculating...\n\n");
     // Launch kernel, check if it is a square
     if(m == n && n == k) {
         matrixTriUpper<<<dimGrid, dimBlock>>>(matA, m, n);
@@ -193,7 +194,8 @@ int main(int argc, char** argv) {
     
     // Transefr results from device to host 
     cudaMemcpy(copyC, matC, sizeof(float)*m*k, cudaMemcpyDeviceToHost);
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize(); //possibly
+    //cudaThreadSynchronize();
     
     //prints the matricies
     // printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]); //Another possible way to print the matrix
