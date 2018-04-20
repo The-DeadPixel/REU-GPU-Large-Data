@@ -14,7 +14,7 @@ DEP = tmm_check.h
 GCC = gcc
 GCC_FLAGS = -std=gnu99 -g -Wall -c -I.
 LD_FLAGS = -g -I. -lcudart
-OPTIONS := -03 --ptxas-options -v --gpu-architecture=sm_61 --compiler-bindir /usr/local/gcc-4.6.3/bin/gcc
+OPTIONS := -O3 --ptxas-options -v --gpu-architecture=sm_61 --compiler-bindir /usr/local/gcc-4.6.3/bin/gcc
 
 
 all: $(EXEC)
@@ -36,3 +36,4 @@ run: test_tmm
 
 clean:
       	rm -f test_tmm
+
