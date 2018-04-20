@@ -4,7 +4,7 @@
 #OBJS-LIB = TMM.o
 
 C_SRCS = main.c
-C_OBJS = main.o gpuFloat.o
+C_OBJS = main.o TilingProgram.o
 #C Headers
 OBJS = ${C_OBJS}
 EXEC = test_tmm
@@ -17,7 +17,6 @@ LD_FLAGS = -g -I. -lcudart
 OPTIONS := -03 --ptxas-options -v --gpu-architecture=sm_61 --compiler-bindir /usr/local/gcc-4.6.3/bin/gcc
 
 
-
 all: $(EXEC)
 
 debug: CFLAGS =-DDEBUG -g -Wall -Wextra -std=c99
@@ -26,7 +25,7 @@ debug: all
 test_tmm : $(OBJS)
         $(GCC) -o $(EXEC) $(LD_FLAGS) $(LIBRARIES) $(OBJS) -L -ltmm -L/usr/local/cuda/lib64 -lcudart
 
-gpuFloat.o: TilingProgram.cu
+TilingProgram.o: TilingProgram.cu
         nvcc $< -c -o $@ $(OPTIONS) -lcudart
 
 main.o: main.c $(DEP)
@@ -37,6 +36,3 @@ run: test_tmm
 
 clean:
       	rm -f test_tmm
-
-
-
