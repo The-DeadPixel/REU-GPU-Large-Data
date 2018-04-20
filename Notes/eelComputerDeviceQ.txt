@@ -36,4 +36,12 @@ Device 0: "GeForce GTX 1060 6GB"
   Device PCI Domain ID / Bus ID / location ID:   0 / 3 / 0
   Compute Mode:
      < Default (multiple host threads can use ::cudaSetDevice() with device simultaneously) >
+     
+     # add cuda libraries to library path
+if [[ "${LD_LIBRARY_PATH}" != "" ]]
+then
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+else
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64
+fi
 
