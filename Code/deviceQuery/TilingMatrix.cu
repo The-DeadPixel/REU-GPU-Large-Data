@@ -156,7 +156,7 @@ return: none
 **********************************************************************/
 
 int main(int argc, char** argv) {
-    int printAllMat = 1; // debug flag for printing all of the maticies
+    int printAllMat = 0; // debug flag for printing all of the maticies
     // Set sizes of the matrixes
     int m=10000;
     int n=10000;
@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
     // printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]); //Another possible way to print the matrix
     //if the debug flag is on it will print the first two product arrays as well
     int i,j;
-   /* if(printAllMat == 1) {
+    if(printAllMat == 1) {
         // print matrix A
         printf("matA matrix: \n");
         for (i = 0; i < m; i++) {
@@ -255,17 +255,17 @@ int main(int argc, char** argv) {
             }
             printf("\n");
         }
-    }
     
-    // print result matrix
-    printf("\nResult matrix: \n");
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < k; j++) {
-                //printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]);
-                printf(" %f ", copyC[i*k + j]);
-            }
-        printf("\n");
-    }*/
+        // print result matrix
+        printf("\nResult matrix: \n");
+        for (i = 0; i < m; i++) {
+            for (j = 0; j < k; j++) {
+                    //printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]);
+                    printf(" %f ", copyC[i*k + j]);
+                }
+            printf("\n");
+        }
+    }
     
     // free memory
     cudaFree(matA);
