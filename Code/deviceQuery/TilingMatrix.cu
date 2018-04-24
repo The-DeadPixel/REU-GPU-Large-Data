@@ -120,6 +120,32 @@ __global__ void squareMatrixMult(float *d_a, float *d_b, float *d_result, int n)
         d_result[row * n + col] = tmp;
     }
 }
+/*
+function name: dynamicTiling
+
+NOTE: This function ASSUMES that the dimensions of matricies A & B are the SAME and that A & B are both sqaure matrices. 
+ 
+ -How it works: WE DO NOT KNOW YET WHAT SIZE OF MATRICIES WE'LL BE GIVEN. This function is designed to find the length of tile (x) that evenly divide two large SQUARE matrices A & B of arbitrary size. Since the GPU Small Data group works with a max amount of data it is implied that there is a maximum square tile size that can be fed into global memory. This program starts with the length of the maximum size square tile (x), and divides the length of A & B (N). If the remainder is 0 (base case) then the maximum square tile length (x) evenly divides the length of A & B (y). If the remainder != 0, the function iterates backwards (x-1) until a length is found that evenly divides the length of both matrices.  
+ 
+ -Inputs: int (length of A or B), int (size of local GPU memory),int* (pointer to integer that will store how many tiles evenly divide the length of both matricies. 
+ 
+ -Output: returns the length of tile that evenly divides the length of both A & B matricies 
+*/
+int dynamicTiling(int testMaxTileLength, int N,int* numOfTilesThatDivide){
+    int greatestDivisibleLength = -1;
+    
+    for (int i = testMaxTileLength; i > 0; i--){
+         
+        if(N % i == 0){
+            greatestDivisibleLength = i;
+            *numOfTilesThatDivide = (N/i);
+            break;
+         }
+    }
+    
+    return greatestDivisibleLength;
+    
+}
 
 /**********************************************************************
 function name: main
@@ -132,12 +158,21 @@ return: none
 int main(int argc, char** argv) {
     int printAllMat = 1; // debug flag for printing all of the maticies
     // Set sizes of the matrixes
-    int m=15;
-    int n=15;
-    int k=15;
+    int m=10000;
+    int n=10000;
+    int k=10000;
     
     /* Fixed seed for illustration */
     srand(3333);
+    //testing for dynamicTiling/////////
+    int testMaxTileLength = 499;
+    int numOfTilesThatDivide = 0;
+    int *numTilePtr = &numOfTilesThatDivide;
+    int maxDivisibleTileLength = dynamicTiling(testMaxTileLength,m,numTilePtr);
+    printf("Max tile length that evenly divides the legth A & B:%d\n", maxDivisibleTileLength);
+    printf("# of tiles that divide the length of A & B:%d\n", numOfTilesThatDivide);
+    printf("total bytes tile covers: %zu bytes \n", (sizeof(float)*maxDivisibleTileLength*maxDivisibleTileLength));
+   
 
     // Allocate memory in host RAM
     float *copyA, *copyB, *copyC;
@@ -201,7 +236,7 @@ int main(int argc, char** argv) {
     // printf("[%d][%d]:%d, ", i, j, copyC[i*k + j]); //Another possible way to print the matrix
     //if the debug flag is on it will print the first two product arrays as well
     int i,j;
-    if(printAllMat == 1) {
+   /* if(printAllMat == 1) {
         // print matrix A
         printf("matA matrix: \n");
         for (i = 0; i < m; i++) {
@@ -230,7 +265,7 @@ int main(int argc, char** argv) {
                 printf(" %f ", copyC[i*k + j]);
             }
         printf("\n");
-    }
+    }*/
     
     // free memory
     cudaFree(matA);
