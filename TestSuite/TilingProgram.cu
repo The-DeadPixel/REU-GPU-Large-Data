@@ -1,5 +1,6 @@
 /*
- *  file name: TilingMatrix.cu
+ * IN test suite  
+ * file name: TilingMatrix.cu
  *  NOTE: 
  *       squareMatrixMult is much more efficent than the regular multiplier
  *       currently compiling with: nvcc TilingMatrix.cu -o tileTest
@@ -12,10 +13,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
-#include <sys/time.h>
-#include <stdlib.h>
+#include <TilingProgram.h>
 
+#include <assert.h>
+#include <stdlib.h>
 #include <sys/time.h>     //measuring performance data
 
 #define BLOCK_SIZE 32
@@ -55,8 +56,7 @@ Note:
     further sppedup can be obtained by using shared memory to decrease global memory access times
 return: none
 **********************************************************************/
-__global__ void matrixMult(float *a, float *b, float *c, int m, int n, int k)
-{ 
+__global__ void matrixMult(float *a, float *b, float *c, int m, int n, int k) { 
     int row = blockIdx.y * blockDim.y + threadIdx.y; 
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     float  sum = 0;
@@ -129,36 +129,41 @@ parameters:
 return: none
 **********************************************************************/
 
-int main(int argc, char** argv) {
+int kernalWrap(long N, float* copyA, float* copyB, float* copyC) {
     int printAllMat = 1; // debug flag for printing all of the maticies
+    
+    
+    
+    
     // Set sizes of the matrixes
-    int m=15;
-    int n=15;
-    int k=15;
+    long m=N;
+    long n=N;
+    long k=N;
     
-    /* Fixed seed for illustration */
-    srand(3333);
-
-    // Allocate memory in host RAM
-    float *copyA, *copyB, *copyC;
-    cudaMallocHost((void **) &copyA, sizeof(float)*m*n); // copied matrix is m x n
-    cudaMallocHost((void **) &copyB, sizeof(float)*n*k); // copied matrix is n x k
-    cudaMallocHost((void **) &copyC, sizeof(float)*m*k); // copied matrix is m x k
     
-    // float x = (float)rand()/(float)(RAND_MAX/a);
-    // random initialize matrix A
-    for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
-            copyA[i * n + j] =((float)rand()/(float)(RAND_MAX)) * 1024;
-        }
-    }
-
-    // random initialize matrix B
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < k; ++j) {
-            copyB[i * k + j] = ((float)rand()/(float)(RAND_MAX)) * 1024;
-        }
-    }
+//     /* Fixed seed for illustration */
+//     srand(3333);
+// 
+//     // Allocate memory in host RAM
+//     float *copyA, *copyB, *copyC;
+//     cudaMallocHost((void **) &copyA, sizeof(float)*m*n); // copied matrix is m x n
+//     cudaMallocHost((void **) &copyB, sizeof(float)*n*k); // copied matrix is n x k
+//     cudaMallocHost((void **) &copyC, sizeof(float)*m*k); // copied matrix is m x k
+//     
+//     // float x = (float)rand()/(float)(RAND_MAX/a);
+//     // random initialize matrix A
+//     for (int i = 0; i < m; ++i) {
+//         for (int j = 0; j < n; ++j) {
+//             copyA[i * n + j] =((float)rand()/(float)(RAND_MAX)) * 1024;
+//         }
+//     }
+// 
+//     // random initialize matrix B
+//     for (int i = 0; i < n; ++i) {
+//         for (int j = 0; j < k; ++j) {
+//             copyB[i * k + j] = ((float)rand()/(float)(RAND_MAX)) * 1024;
+//         }
+//     }
     
     // Allocate memory space on the device 
     float *matA, *matB, *matC;
