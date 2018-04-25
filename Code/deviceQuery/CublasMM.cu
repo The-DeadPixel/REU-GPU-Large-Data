@@ -1,9 +1,9 @@
-// nvcc CublasMM.c -lcublas
-# include < stdio.h >
-# include < stdlib.h >
-# include < cuda_runtime.h >
-# include " cublas_v2.h"
-# define IDX2C (i ,j , ld ) ((( j )*( ld ))+( i ))
+// nvcc 036 sgemm .c -lcublas
+# include <stdio.h>
+# include <stdlib.h>
+# include <cuda_runtime.h>
+# include "cublas_v2.h"
+# define IDX2C(i ,j , ld ) ((( j )*( ld ))+( i ))
 # define m 6 // a - mxk matrix
 # define n 4 // b - kxn matrix
 # define k 5 // c - mxn matrix
@@ -23,7 +23,7 @@ int main ( void ){
     int ind =11; // a:
     for(j=0;j<k;j ++){ // 11 ,17 ,23 ,29 ,35
         for(i=0;i<m;i ++){ // 12 ,18 ,24 ,30 ,36
-            a[ IDX2C (i,j,m )]=( float )ind ++; // 13 ,19 ,25 ,31 ,37
+            a[IDX2C(i,j,m )]=(float)ind++; // 13 ,19 ,25 ,31 ,37
         } // 14 ,20 ,26 ,32 ,38
     } // 15 ,21 ,27 ,33 ,39
     // 16 ,22 ,28 ,34 ,40
@@ -31,7 +31,7 @@ int main ( void ){
     printf ("a:\n");
     for (i=0;i<m;i ++){
         for (j=0;j<k;j ++){
-            printf (" %5.0 f",a[ IDX2C (i,j,m )]);
+            printf (" %5.0f",a[IDX2C(i,j,m )]);
         }
         printf ("\n");
     }
@@ -47,7 +47,7 @@ int main ( void ){
     printf ("b:\n");
     for (i=0;i<k;i ++){
         for (j=0;j<n;j ++){
-            printf (" %5.0 f",b[ IDX2C (i,j,k )]);
+            printf (" %5.0f",b[ IDX2C (i,j,k )]);
         }
         printf ("\n");
     }
@@ -63,7 +63,7 @@ int main ( void ){
     printf ("c:\n");
     for (i=0;i<m;i ++){
         for (j=0;j<n;j ++){
-            printf (" %5.0 f",c[ IDX2C (i,j,m )]);
+            printf (" %5.0f",c[ IDX2C (i,j,m )]);
         }
         printf ("\n");
     }
@@ -82,18 +82,17 @@ int main ( void ){
     stat = cublasSetMatrix (m,k, sizeof (*a) ,a,m,d_a ,m); //a -> d_a
     stat = cublasSetMatrix (k,n, sizeof (*b) ,b,k,d_b ,k); //b -> d_b
     stat = cublasSetMatrix (m,n, sizeof (*c) ,c,m,d_c ,m); //c -> d_c
-    float al =1.0 f; // al =1
-    float bet =1.0 f; // bet =1
+    float al =1.0f; // al =1
+    float bet =1.0f; // bet =1
     // matrix - matrix multiplication : d_c = al*d_a *d_b + bet *d_c
     // d_a -mxk matrix , d_b -kxn matrix , d_c -mxn matrix ;
     // al ,bet -scalars
-    stat=cublasSgemm(handle,CUBLAS OP N,CUBLAS OP N,m,n,k,&al,d a,
-                    m,d b,k,&bet,d c,m);
+    stat=cublasSgemm(handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&al,d_a,m,d_b,k,&bet,d_c,m);
     stat = cublasGetMatrix (m,n, sizeof (*c) ,d_c ,m,c,m); // cp d_c - >c
     printf ("c after Sgemm :\n");
     for(i=0;i<m;i ++){
         for(j=0;j<n;j ++){
-            printf (" %7.0 f",c[ IDX2C (i,j,m )]); // print c after Sgemm
+            printf (" %7.0f",c[ IDX2C (i,j,m )]); // print c after Sgemm
         }
         printf ("\n");
     }
