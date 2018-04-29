@@ -10,7 +10,7 @@
 
 int main ( void ){
     cudaError_t cudaStat ; // cudaMalloc status
-    cublasStatus_t stat ; // CUBLAS functions status
+    cublasStatus_t stat ; // CUBLAS functions statusx
     cublasHandle_t handle ; // CUBLAS context
     int i,j; // i-row index ,j- column index
     float * a; // mxk matrix a on the host
@@ -71,14 +71,12 @@ int main ( void ){
     float * d_a; // d_a - a on the device
     float * d_b; // d_b - b on the device
     float * d_c; // d_c - c on the device
-    cudaStat = cudaMalloc (( void **)& d_a ,m*k* sizeof (*a)); // device
-    // memory alloc for a
-    cudaStat = cudaMalloc (( void **)& d_b ,k*n* sizeof (*b)); // device
-    // memory alloc for b
-    cudaStat = cudaMalloc (( void **)& d_c ,m*n* sizeof (*c)); // device
-    // memory alloc for c
+    cudaStat = cudaMalloc((void**)& d_a ,m*k* sizeof(*a)); // device memory alloc for a
+    cudaStat = cudaMalloc((void**)& d_b ,k*n* sizeof(*b)); // device memory alloc for b
+    cudaStat = cudaMalloc((void**)& d_c ,m*n* sizeof(*c)); // device memory alloc for c
     stat = cublasCreate (& handle ); // initialize CUBLAS context
     // copy matrices from the host to the device
+    //cudaGetErrorString((cudaError_t) cudaStat);
     stat = cublasSetMatrix (m,k, sizeof (*a) ,a,m,d_a ,m); //a -> d_a
     stat = cublasSetMatrix (k,n, sizeof (*b) ,b,k,d_b ,k); //b -> d_b
     stat = cublasSetMatrix (m,n, sizeof (*c) ,c,m,d_c ,m); //c -> d_c
@@ -96,14 +94,14 @@ int main ( void ){
         }
         printf ("\n");
     }
-    cudaFree (d_a ); // free device memory
-    cudaFree (d_b ); // free device memory
-    cudaFree (d_c ); // free device memory
-    cublasDestroy ( handle ); // destroy CUBLAS context
+    cudaFree (d_a); // free device memory
+    cudaFree (d_b); // free device memory
+    cudaFree (d_c); // free device memory
+    cublasDestroy (handle); // destroy CUBLAS context
     free (a); // free host memory
     free (b); // free host memory
     free (c); // free host memory
-    return EXIT_SUCCESS ;
+    return EXIT_SUCCESS;
 }
 // a:
 // 11 17 23 29 35
