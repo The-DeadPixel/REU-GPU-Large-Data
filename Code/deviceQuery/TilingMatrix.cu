@@ -112,8 +112,6 @@ void matrixCpy(float *a, float *b, float *c, int m, int n, int k) {
     cudaMalloc((void**)&d_c,m*n*sizeof(*c)); // device memory alloc for c
     //begin breaking up matrix A & B and mallocing them for device
     for(int i=0; i < n; ++i) {
-        float = *d_a; // d_a - block of a on the device
-        cudaMalloc((void*)&d_a,i*n*sizeof(*a));
         for(int j=0; j < n; ++j) {
             
         }
