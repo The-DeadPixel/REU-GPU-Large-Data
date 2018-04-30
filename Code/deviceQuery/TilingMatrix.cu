@@ -229,10 +229,12 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m ) {
 //                 
 //             // Cublas MM Kernel call goes here
 //             }
+               cublasSgemm(handle,CUBLAS_OP_N,CUBLAS_OP_N,tileLength,tileLength,tileLength,&al,d_a,tileLength,d_b,tileLength,&bet,d_c,tileLength);
 //             //Free device and host memory for next iteration
                
 //             cudaFree(d_a);
 //             cudaFree(d_b);
+               cublasDestroy(handle);
 //             free(Ta);
 //             free(Tb);
         }
