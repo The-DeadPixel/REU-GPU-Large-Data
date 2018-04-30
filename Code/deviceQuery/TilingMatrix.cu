@@ -6,7 +6,7 @@
  *       Device Standards for: GeForce GTX 1060 6GB
  *          total global mem size: 6078 MBytes (6373572608 bytes)
  *          total shared mem per block: 49.152 KBytes (49152 bytes)
- *       nvcc TilingMatrixV2.c -lcublas -o TilingMatrixTest
+ *       nvcc TilingMatrix.cu -lcublas -o tileTest
  */
 
 #include <stdio.h>
