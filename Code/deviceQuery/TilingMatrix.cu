@@ -18,8 +18,7 @@
 #include "cublas_v2.h"
 #include <sys/time.h>     //measuring performance data
 
- #define BLOCK_SIZE 32
-
+#define BLOCK_SIZE 32
 
 /**********************************************************************
  * function name: matrixTriUpper
@@ -47,7 +46,6 @@ __global__ void matrixTriUpper(float *a, int m, int n) {
  * parameters: 
  * error a cublas error status enum
  * return: char pointer (string)
- * TODO: Fix the return type
  **********************************************************************/
 const char* cublasGetErrorString(cublasStatus_t status)
 {
@@ -158,7 +156,7 @@ void fillB(float *tileB, float *matrixB, int tileLength, int i, int j, int numTi
  * return: none
  * TODO implement kernel calls of cuBlas and TMM, implement another function or code that tranfers results of C tile to matrix C. FIGURE OUT WHY fillA and fillB piss off the compiler
  **********************************************************************/
-void matrixCpy(float *a, float *b, float *c, int tileLength, int m ) {
+void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
     cudaError_t cudaStat; // cudaMalloc & cudaFree status
     cublasStatus_t stat; // CUBLAS functions statusx
     cublasHandle_t handle; // CUBLAS context
@@ -203,12 +201,18 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m ) {
             printf("Tile B iteration: i=%d, j=%d\n", i,j);
             fillB(Tb, b, tileLength, i, j, m);
             //memcpy TileA and TileB froim host to device
-            cudaStat = cudaMemcpy(d_a, Ta, tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
-            if(cudaStat != cudaSuccess)
-                printf("Cuda memcpy: %s\n", cudaGetErrorString(cudaStat));
-            cudaStat = cudaMemcpy(d_b, Tb, tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
-            if(cudaStat != cudaSuccess)
-                printf("Cuda memcpy Error: %s\n", cudaGetErrorString(cudaStat));
+//             cudaStat = cudaMemcpy(d_a,Ta,tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
+//             if(cudaStat != cudaSuccess)
+//                 printf("Cuda memcpy: %s\n", cudaGetErrorString(cudaStat));
+//             cudaStat = cudaMemcpy(d_b, Tb, tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
+//             if(cudaStat != cudaSuccess)
+//                 printf("Cuda memcpy Error: %s\n", cudaGetErrorString(cudaStat));
+            stat = cublasSetMatrix(tileLength,tileLength,sizeof(*Ta),Ta,tileLength,d_a,tileLength);
+            if(stat != CUBLAS_STATUS_SUCCESS)
+                printf("Cublas to Matrix A Error: %s\n", cublasGetErrorString(stat));
+            stat = cublasSetMatrix(tileLength,tileLength,sizeof(*Tb),Tb,tileLength,d_b,tileLength);
+            if(stat != CUBLAS_STATUS_SUCCESS)
+                printf("Cublas to Matrix B Error: %s\n", cublasGetErrorString(stat));
             
             stat = cublasSgemm(handle,CUBLAS_OP_N,CUBLAS_OP_N,tileLength,tileLength,tileLength,&al,d_a,tileLength,d_b,tileLength,&bet,d_c,tileLength);
             if(stat != CUBLAS_STATUS_SUCCESS)
@@ -229,15 +233,16 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m ) {
             free(Tb);
         }
         
-        cublasDestroy(handle);
         //memcpy c results back to host
-        cudaMemcpy(Tc,d_c, tileLength*tileLength*sizeof(float),cudaMemcpyDeviceToHost);
+//         cudaMemcpy(Tc,d_c, tileLength*tileLength*sizeof(float),cudaMemcpyDeviceToHost);
+        stat = cublasGetMatrix (tileLength,tileLength, sizeof(*Tc) ,d_c ,tileLength,c,tileLength); // cp d_c - >c
         storeC(Tc,c, tileLength, i, storeCHelper, m);
         storeCHelper++;
         //Free device and host memory of C related arrays
         cudaFree(d_c);
         free(Tc);
     }
+    cublasDestroy(handle);
 }
 
 
@@ -254,6 +259,8 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m ) {
  * return: none
  **********************************************************************/
 int main(int argc, char** argv) {
+//     cublasStatus_t stat; // CUBLAS functions statusx
+//     cublasHandle_t handle; // CUBLAS context
     int m=4;// a - mxk matrix
     int n=4;// b - kxn matrix
     int k=4;// c - mxn matrix
@@ -283,17 +290,21 @@ int main(int argc, char** argv) {
             b[i * k + j] = val++;
         }
     }
-    
+     matrixCpy(a,b,c,2,2);
     // on host set the two matracies to triangles
-    unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    dim3 dimGrid(grid_cols, grid_rows);
-    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    printf("Calculating...\n\n");
-    // Launch kernel
-    matrixTriUpper<<<dimGrid, dimBlock>>>(a, m, n);
-    matrixTriUpper<<<dimGrid, dimBlock>>>(b, n, k);
-    matrixCpy(a,b,c,2,2);
+//     unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
+//     unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
+//     dim3 dimGrid(grid_cols, grid_rows);
+//     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+//     printf("Calculating...\n\n");
+//     // Launch kernel
+//         matrixCpy(a,b,c,2,2);
+//     matrixTriUpper<<<dimGrid, dimBlock>>>(a, m, n);
+//     matrixTriUpper<<<dimGrid, dimBlock>>>(b, n, k);
+//     stat = cublasCreate(&handle); // initialize CUBLAS context
+//     if(stat != CUBLAS_STATUS_SUCCESS)
+//         printf("Cublas Create Error: %s\n", cublasGetErrorString(stat));
+
     //     cublasMatrixMult<<<dimGrid, dimBlock>>>(a,b,c,m,n,k);
     
     int i,j;
