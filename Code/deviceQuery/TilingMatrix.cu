@@ -161,7 +161,7 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
     cublasStatus_t stat; // CUBLAS functions statusx
     cublasHandle_t handle; // CUBLAS context
     float al =1.0f; // al =1
-    float bet =1.0f; // bet =1
+    float bet =0.0f; // bet =1
     float *Ta,*Tb,*Tc, *d_a, *d_b, *d_c; // device and host TILE memory declaration
     int storeCHelper = 0;
     
@@ -291,21 +291,6 @@ int main(int argc, char** argv) {
         }
     }
      matrixCpy(a,b,c,2,2);
-    // on host set the two matracies to triangles
-//     unsigned int grid_rows = (m + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     dim3 dimGrid(grid_cols, grid_rows);
-//     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-//     printf("Calculating...\n\n");
-//     // Launch kernel
-//         matrixCpy(a,b,c,2,2);
-//     matrixTriUpper<<<dimGrid, dimBlock>>>(a, m, n);
-//     matrixTriUpper<<<dimGrid, dimBlock>>>(b, n, k);
-//     stat = cublasCreate(&handle); // initialize CUBLAS context
-//     if(stat != CUBLAS_STATUS_SUCCESS)
-//         printf("Cublas Create Error: %s\n", cublasGetErrorString(stat));
-
-    //     cublasMatrixMult<<<dimGrid, dimBlock>>>(a,b,c,m,n,k);
     
     int i,j;
     // print matrix A
@@ -335,7 +320,6 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
-    
     // free memory
     free(a);
     free(b);
