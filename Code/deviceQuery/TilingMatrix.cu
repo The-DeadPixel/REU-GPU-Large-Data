@@ -18,6 +18,8 @@
 #include "cublas_v2.h"
 #include <sys/time.h>     //measuring performance data
 
+ #define BLOCK_SIZE 32
+
 
 /**********************************************************************
  * function name: matrixTriUpper
