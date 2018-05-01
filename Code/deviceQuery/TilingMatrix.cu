@@ -79,8 +79,8 @@ void storeC (float *tileC, float *matrixC, int tileLength, int i, int j, int num
     //pointer declarations
     for(int Ti = (tileLength*i); Ti < (tileLength*i)+tileLength; Ti++){
         for(int Tj = (tileLength*j); Tj < (tileLength*j) + tileLength; Tj++ ){
-            matrixC[(Ti * tileLength) + Tj] = tileC[(Ti *numTiles *tileLength)+Tj];  
-            printf("[%0.1f] ", matrixC[(Ti*tileLength) + Tj]);
+            matrixC[(Ti * numTiles) + Tj] = tileC[(Ti *numTiles *tileLength)+Tj];  
+            printf("[%0.1f] ", tileC[(Ti *numTiles *tileLength)+Tj]);
         }
         printf("\n");
     }
@@ -163,7 +163,7 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
     float al =1.0f; // al =1
     float bet =0.0f; // bet =1
     float *Ta,*Tb,*Tc, *d_a, *d_b, *d_c; // device and host TILE memory declaration
-    int storeCHelper = 0;
+//     int storeCHelper = 0;
     
     stat = cublasCreate(&handle); // initialize CUBLAS context
     if(stat != CUBLAS_STATUS_SUCCESS)
@@ -173,20 +173,20 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
     {
         
         //host and device tile allocation of C
-        Tc = (float*) malloc(tileLength*tileLength*sizeof(float)); // host tile memory for c
-        cudaStat = cudaMalloc((void**)&d_c,tileLength*tileLength*sizeof(*c)); // device memory alloc for c
-        if(cudaStat != cudaSuccess)
-            printf("Cuda malloc Error: %s\n", cudaGetErrorString(cudaStat));
+        
+        
         //memcpy of tile C for host to device (POSSIBLE AREA FOR TIMING)
-        cudaStat = cudaMemcpy(d_c, Tc, tileLength*tileLength*sizeof(float), cudaMemcpyHostToDevice);
-        if(cudaStat != cudaSuccess)
-            printf("Cuda malloc Error: %s\n", cudaGetErrorString(cudaStat));
+        //         cudaStat = cudaMemcpy(d_c, Tc, tileLength*tileLength*sizeof(float), cudaMemcpyHostToDevice);
+        //         if(cudaStat != cudaSuccess)
+        //             printf("Cuda malloc Error: %s\n", cudaGetErrorString(cudaStat));
+
         
         for(int j = 0; j < m; j++)
         {
             //Host memory alocation
             Ta = (float*) malloc(tileLength*tileLength* sizeof(float)*2); // host tile memory alloc for a
             Tb = (float*) malloc(tileLength*tileLength* sizeof(float)*2); // host tile memory alloc for b
+            Tc = (float*) malloc(tileLength*tileLength*sizeof(float)*2); // host tile memory for c
             //Device memory allocation
             cudaStat = cudaMalloc((void**)&d_a,tileLength*tileLength*sizeof(*a)); // device memory alloc for a
             if(cudaStat != cudaSuccess)
@@ -194,6 +194,9 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
             cudaStat = cudaMalloc((void**)&d_b,tileLength*tileLength*sizeof(*b)); // device memory alloc for b
             if(cudaStat != cudaSuccess)
                 printf("Cuda B Malloc: %s\n", cudaGetErrorString(cudaStat));
+            cudaStat = cudaMalloc((void**)&d_c,tileLength*tileLength*sizeof(*c)); // device memory alloc for c
+            if(cudaStat != cudaSuccess)
+                printf("Cuda malloc Error: %s\n", cudaGetErrorString(cudaStat));
             
             //Fill tileA & tileB with elements from matrix A
             printf("Tile A iteration: i=%d, j=%d\n", i,j);
@@ -201,23 +204,35 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
             printf("Tile B iteration: i=%d, j=%d\n", i,j);
             fillB(Tb, b, tileLength, i, j, m);
             //memcpy TileA and TileB froim host to device
-//             cudaStat = cudaMemcpy(d_a,Ta,tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
-//             if(cudaStat != cudaSuccess)
-//                 printf("Cuda memcpy: %s\n", cudaGetErrorString(cudaStat));
-//             cudaStat = cudaMemcpy(d_b, Tb, tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
-//             if(cudaStat != cudaSuccess)
-//                 printf("Cuda memcpy Error: %s\n", cudaGetErrorString(cudaStat));
+            //             cudaStat = cudaMemcpy(d_a,Ta,tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
+            //             if(cudaStat != cudaSuccess)
+            //                 printf("Cuda memcpy: %s\n", cudaGetErrorString(cudaStat));
+            //             cudaStat = cudaMemcpy(d_b, Tb, tileLength*tileLength*sizeof(float),cudaMemcpyHostToDevice);
+            //             if(cudaStat != cudaSuccess)
+            //                 printf("Cuda memcpy Error: %s\n", cudaGetErrorString(cudaStat));
             stat = cublasSetMatrix(tileLength,tileLength,sizeof(*Ta),Ta,tileLength,d_a,tileLength);
             if(stat != CUBLAS_STATUS_SUCCESS)
                 printf("Cublas to Matrix A Error: %s\n", cublasGetErrorString(stat));
             stat = cublasSetMatrix(tileLength,tileLength,sizeof(*Tb),Tb,tileLength,d_b,tileLength);
             if(stat != CUBLAS_STATUS_SUCCESS)
                 printf("Cublas to Matrix B Error: %s\n", cublasGetErrorString(stat));
+            stat = cublasSetMatrix(tileLength,tileLength,sizeof(*Tc),Tc,tileLength,d_c,tileLength);
+            if(stat != CUBLAS_STATUS_SUCCESS)
+                printf("Cublas to Matrix C Error: %s\n", cublasGetErrorString(stat));
             
             stat = cublasSgemm(handle,CUBLAS_OP_N,CUBLAS_OP_N,tileLength,tileLength,tileLength,&al,d_a,tileLength,d_b,tileLength,&bet,d_c,tileLength);
             if(stat != CUBLAS_STATUS_SUCCESS)
                 printf("Cublas Matrix Multiplication Error: %s\n", cublasGetErrorString(stat));
-            
+            stat = cublasGetMatrix (tileLength,tileLength, sizeof(*Tc),d_c,tileLength,c,tileLength); // cp d_c - >c
+            printf("Tile C store iteration:\n");
+            for (int k = 0; k < tileLength; k++) {
+                for (int l = 0; l < tileLength; l++) {
+                    //printf("[%d][%d]:%d, ", i, j, a[i*k + j]);
+                    printf(" %f ", Tc[k*tileLength + l]);
+                }
+                printf("\n");
+            }
+            storeC(Tc,c, tileLength, i, j, m);
             //Free device and host memory for next iteration
             printf("Free da\n");   
             cudaStat = cudaFree(d_a);
@@ -227,20 +242,22 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
             cudaFree(d_b);
             if(cudaStat != cudaSuccess)
                 printf("Cuda free Error: %s\n", cudaGetErrorString(cudaStat));
+            cudaFree(d_c);
             printf("Free Ta\n");   
             free(Ta);
             printf("Free Tb\n"); 
             free(Tb);
+            free(Tc);
         }
         
         //memcpy c results back to host
-//         cudaMemcpy(Tc,d_c, tileLength*tileLength*sizeof(float),cudaMemcpyDeviceToHost);
-        stat = cublasGetMatrix (tileLength,tileLength, sizeof(*Tc) ,d_c ,tileLength,c,tileLength); // cp d_c - >c
-        storeC(Tc,c, tileLength, i, storeCHelper, m);
-        storeCHelper++;
-        //Free device and host memory of C related arrays
-        cudaFree(d_c);
-        free(Tc);
+        //         cudaMemcpy(Tc,d_c, tileLength*tileLength*sizeof(float),cudaMemcpyDeviceToHost);
+        
+//         storeC(Tc,c, tileLength, i, storeCHelper, m);
+//         storeCHelper++;
+//         //Free device and host memory of C related arrays
+//         cudaFree(d_c);
+//         free(Tc);
     }
     cublasDestroy(handle);
 }
@@ -259,8 +276,8 @@ void matrixCpy(float *a, float *b, float *c, int tileLength, int m) {
  * return: none
  **********************************************************************/
 int main(int argc, char** argv) {
-//     cublasStatus_t stat; // CUBLAS functions statusx
-//     cublasHandle_t handle; // CUBLAS context
+    //     cublasStatus_t stat; // CUBLAS functions statusx
+    //     cublasHandle_t handle; // CUBLAS context
     int m=4;// a - mxk matrix
     int n=4;// b - kxn matrix
     int k=4;// c - mxn matrix
@@ -290,7 +307,7 @@ int main(int argc, char** argv) {
             b[i * k + j] = val++;
         }
     }
-     matrixCpy(a,b,c,2,2);
+    matrixCpy(a,b,c,2,2);
     
     int i,j;
     // print matrix A
