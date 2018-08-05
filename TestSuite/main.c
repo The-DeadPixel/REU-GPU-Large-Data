@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include "tmm_check.h"
+#include <TilingProgram.cu>
+#include <TilingProgram.h>
 
+//int kernalWrap(long, float**, float*,float*);
 
 /* This is the prototype for the function you have to pass to be called.
  *
@@ -52,8 +55,8 @@ void TMM2D(long N, float** A, float** B, float** C)
 
 	gettimeofday(&time, NULL);
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000);
-
-	// Call your own TMM here //
+	
+    squareMatrixMult(A, B, C, N);  // Call your own TMM here //
 
 	gettimeofday(&time, NULL);
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000) - elapsed_time;
@@ -72,6 +75,7 @@ void TMMlin(long N, float* A, float* B, float* C)
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000);
 
 	// Call your own TMM here //
+	kernalWrap(N,A, B, C ); 
 
 	gettimeofday(&time, NULL);
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000) - elapsed_time;
